@@ -1,5 +1,6 @@
 module COBRAUtils
 
-# package code goes here
+include("io.jl")
+include("manipulations.jl")
 
 end # module
