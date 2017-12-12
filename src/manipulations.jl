@@ -1,5 +1,7 @@
 import COBRA
 
+export reactionsIrrev, addFluxCost
+
 
 """
 Creates an extended model, where reactions are split in two, 
@@ -18,7 +20,6 @@ function reactionsIrrev(cobra_model::COBRA.LPproblem)
                     copy(cobra_model.csense), rxns,
                     copy(cobra_model.mets))
 end
-
 
 
 """

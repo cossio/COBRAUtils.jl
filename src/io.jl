@@ -1,4 +1,7 @@
 import COBRA
+import Utils # Pkg.clone("https://github.com/cossio/Utils.jl")
+
+export readCobraModel, prepareXmlModel
 
 
 """
