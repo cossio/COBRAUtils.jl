@@ -43,3 +43,45 @@ function addFluxCost(cobra_model::COBRA.LPproblem, costs::Vector{Float64})
                     cobra_model.osense, csense, 
                     rxns, mets)
 end
+
+
+"""
+Index of reaction rxn.
+"""
+function reaction_index(cobra_model::COBRA.LPproblem, rxn::String)
+    k = findfirst(cobra_model.rxns, rxn)
+    k == 0 && throw(KeyError(rxn))
+    return k
+end
+
+
+"""
+Returns list of metabolite indices that participate in the k'th reaction.
+"""
+function reaction_metabolites(cobra_model::COBRA.LPproblem, k::Int)
+    @assert 0 < k < length(cobra_model.rxns)
+    find(cobra_model[1:end, k])
+end
+
+
+"""
+Returns list of metabolite indices that are consumed in the k'th reaction.
+"""
+function reaction_substrates(cobra_model::COBRA.LPproblem, k::Int)
+    @assert 0 < k < length(cobra_model.rxns)
+    find(s -> s < 0, cobra_model[1:end, k])
+end
+
+
+"""
+Returns list of metabolite indices that are produced in the k'th reaction.
+"""
+function reaction_products(cobra_model::COBRA.LPproblem, k::Int)
+    @assert 0 < k < length(cobra_model.rxns)
+    find(s -> s > 0, cobra_model[1:end, k])
+end
+
+
+reaction_metabolites(cobra_model::COBRA.LPproblem, rxn::String) = reaction_metabolites(cobra_model, reaction_index(cobra_model, rxn))
+reaction_substrates(cobra_model::COBRA.LPproblem, rxn::String)  = reaction_substrates(cobra_model,  reaction_index(cobra_model, rxn))
+reaction_products(cobra_model::COBRA.LPproblem, rxn::String)    = reaction_products(cobra_model,    reaction_index(cobra_model, rxn))
