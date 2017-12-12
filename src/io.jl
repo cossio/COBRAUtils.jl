@@ -25,4 +25,3 @@ function prepareXmlModel(xmlpath::String)
     end
     return matpath
 end
-
