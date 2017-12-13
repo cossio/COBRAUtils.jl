@@ -56,11 +56,21 @@ end
 
 
 """
+Index of metabolite met.
+"""
+function metabolite_index(cobra_model::COBRA.LPproblem, met::String)
+    i = findfirst(cobra_model.mets, met)
+    i == 0 && throw(KeyError(met))
+    return i
+end
+
+
+"""
 Returns list of metabolite indices that participate in the k'th reaction.
 """
 function reaction_metabolites(cobra_model::COBRA.LPproblem, k::Int)
-    @assert 0 < k < length(cobra_model.rxns)
-    find(cobra_model[1:end, k])
+    @assert 1 ≤ k ≤ length(cobra_model.rxns)
+    find(cobra_model.S[1:end, k])
 end
 
 
@@ -68,8 +78,8 @@ end
 Returns list of metabolite indices that are consumed in the k'th reaction.
 """
 function reaction_substrates(cobra_model::COBRA.LPproblem, k::Int)
-    @assert 0 < k < length(cobra_model.rxns)
-    find(s -> s < 0, cobra_model[1:end, k])
+    @assert 1 ≤ k ≤ length(cobra_model.rxns)
+    find(s -> s < 0, cobra_model.S[1:end, k])
 end
 
 
@@ -77,11 +87,35 @@ end
 Returns list of metabolite indices that are produced in the k'th reaction.
 """
 function reaction_products(cobra_model::COBRA.LPproblem, k::Int)
-    @assert 0 < k < length(cobra_model.rxns)
-    find(s -> s > 0, cobra_model[1:end, k])
+    @assert 1 ≤ k ≤ length(cobra_model.rxns)
+    find(s -> s > 0, cobra_model.S[1:end, k])
 end
 
 
 reaction_metabolites(cobra_model::COBRA.LPproblem, rxn::String) = reaction_metabolites(cobra_model, reaction_index(cobra_model, rxn))
 reaction_substrates(cobra_model::COBRA.LPproblem, rxn::String)  = reaction_substrates(cobra_model,  reaction_index(cobra_model, rxn))
 reaction_products(cobra_model::COBRA.LPproblem, rxn::String)    = reaction_products(cobra_model,    reaction_index(cobra_model, rxn))
+
+
+function metabolite_reactions(cobra_model::COBRA.LPproblem, i::Int)
+    @assert 1 ≤ i ≤ length(cobra_model.mets)
+    find(cobra_model.S[i,:])
+end
+
+metabolite_reactions(cobra_model::COBRA.LPproblem, met::String) = metabolite_reactions(cobra_model, metabolite_index(cobra_model, met))
+
+
+"""
+Returns list of reactions that exchange the i'th metabolite
+"""
+function exchange_reactions(cobra_model::COBRA.LPproblem, i::Int)
+    indexes = Int[]
+    for k in metabolite_reactions(cobra_model, i)
+        if isempty(reaction_substrates(cobra_model, k)) || isempty(reaction_products(cobra_model, k))
+            push!(indexes, k)
+        end
+    end
+    return indexes
+end
+
+exchange_reactions(cobra_model::COBRA.LPproblem, met::String) = exchange_reactions(cobra_model, metabolite_index(cobra_model, met))
