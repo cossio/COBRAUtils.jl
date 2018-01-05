@@ -125,15 +125,30 @@ exchange_reactions(cobra_model::COBRA.LPproblem, met::String) = exchange_reactio
 Returns a copy of cobra_model where reaction i has been eliminated
 """
 function remove_reaction(cobra_model::COBRA.LPproblem, i::Int)
-    n = length(cobra_model.rxns)
-    @assert 1 ≤ i ≤ n
-    ran = [1 : i - 1; i + 1 : n]
+    keep = [k for k = 1 : length(cobra_model.rxns) if k ≠ i]
+    keep_reactions(cobra_model, keep)
+end
 
-    S = cobra_model.S[:, ran]
-    c = cobra_model.c[ran]
-    lb = cobra_model.lb[ran]
-    ub = cobra_model.ub[ran]
-    rxns = cobra_model.rxns[ran]
+"""
+Returns a copy of cobra_model where the reactions in list have been eliminated
+"""
+function remove_reactions(cobra_model::COBRA.LPproblem, list::AbstractVector{Int})
+    keep = [k for k = 1 : length(cobra_model.rxns) if k ∉ list]
+    keep_reactions(cobra_model, keep)
+end
+
+
+"""
+Returns a copy of cobra_model where all reactions have been eliminated except those in list.
+"""
+function keep_reactions(cobra_model::COBRA.LPproblem, list::AbstractVector{Int})
+    @assert all(1 .≤ list .≤ length(cobra_model.rxns))
+
+    S = cobra_model.S[:, list]
+    c = cobra_model.c[list]
+    lb = cobra_model.lb[list]
+    ub = cobra_model.ub[list]
+    rxns = cobra_model.rxns[list]
 
     COBRA.LPproblem(S, cobra_model.b, c, lb, ub, cobra_model.osense, 
                     cobra_model.csense, rxns, cobra_model.mets)
