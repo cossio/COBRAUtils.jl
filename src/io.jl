@@ -25,3 +25,11 @@ function prepareXmlModel(xmlpath::String)
     end
     return matpath
 end
+
+
+function loadEColiTestModel()
+    path = Pkg.dir() * "/COBRAUtils/metabolic_networks/ecoli_core_model.mat"
+    model = COBRAUtils.readCobraModel(path)
+    model.osense = 1
+    return model
+end

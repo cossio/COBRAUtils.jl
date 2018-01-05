@@ -5,13 +5,13 @@ import COBRAUtils
     model = COBRAUtils.AVCobraModel(0.5, 0.)
     status, μ, v = COBRAUtils.optimize(model)
     @test status == :Optimal
-    @test μ == 17.2
+    @test μ ≈ 17.2
     @test v ≈ [0.5, -0.1, 0.9, 17.2]
 
     model = COBRAUtils.reactionsIrrev(model)
     status, μ, v = COBRAUtils.optimize(model)
     @test status == :Optimal
-    @test μ == 17.2
+    @test μ ≈ 17.2
     @test v ≈ [0.5, 0., 0.9, 17.2, 0.0, 0.1, 0.0, 0.0]
 
     model = COBRAUtils.addFluxCost(model, ones(length(model.rxns)))

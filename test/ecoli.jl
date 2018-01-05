@@ -2,16 +2,8 @@ using Base.Test
 import COBRAUtils
 
 
-function loadEColi()
-    path = "../metabolic_networks/ecoli_core_model.mat"
-    model = COBRAUtils.readCobraModel(path)
-    model.osense = 1
-    return model
-end
-
-
 @testset "E. Coli" begin
-    model = loadEColi()
+    model = COBRAUtils.loadEColiTestModel()
 
     @test COBRAUtils.metabolite_index(model, "6pgc[c]") == 4
     @test COBRAUtils.reaction_index(model, "ACONTa") == 4
@@ -26,5 +18,5 @@ end
     @test COBRAUtils.exchange_reactions(model, "ac[e]") == [20]
 
     status, μ, v = COBRAUtils.optimize(model)
-    @test μ == 0.8739215069684305
+    @test μ ≈ 0.8739215069684305
 end

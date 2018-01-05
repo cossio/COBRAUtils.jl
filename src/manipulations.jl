@@ -1,6 +1,6 @@
 import COBRA
 
-export reactionsIrrev, addFluxCost
+export reactionsIrrev, addFluxCost, remove_reaction
 
 
 """
@@ -119,3 +119,22 @@ function exchange_reactions(cobra_model::COBRA.LPproblem, i::Int)
 end
 
 exchange_reactions(cobra_model::COBRA.LPproblem, met::String) = exchange_reactions(cobra_model, metabolite_index(cobra_model, met))
+
+
+"""
+Returns a copy of cobra_model where reaction i has been eliminated
+"""
+function remove_reaction(cobra_model::COBRA.LPproblem, i::Int)
+    n = length(cobra_model.rxns)
+    @assert 1 ≤ i ≤ n
+    ran = [1 : i - 1; i + 1 : n]
+
+    S = cobra_model.S[:, ran]
+    c = cobra_model.c[ran]
+    lb = cobra_model.lb[ran]
+    ub = cobra_model.ub[ran]
+    rxns = cobra_model.rxns[ran]
+
+    COBRA.LPproblem(S, cobra_model.b, c, lb, ub, cobra_model.osense, 
+                    cobra_model.csense, rxns, cobra_model.mets)
+end
