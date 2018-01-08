@@ -1,6 +1,6 @@
 import COBRA
 
-export reactionsIrrev, addFluxCost, remove_reaction
+export reactionsIrrev, addFluxCost, remove_reaction, remove_reactions
 
 
 """
@@ -124,10 +124,8 @@ exchange_reactions(cobra_model::COBRA.LPproblem, met::String) = exchange_reactio
 """
 Returns a copy of cobra_model where reaction i has been eliminated
 """
-function remove_reaction(cobra_model::COBRA.LPproblem, i::Int)
-    keep = [k for k = 1 : length(cobra_model.rxns) if k ≠ i]
-    keep_reactions(cobra_model, keep)
-end
+remove_reaction(cobra_model::COBRA.LPproblem, i::Int) = remove_reactions(cobra_model, [i])
+
 
 """
 Returns a copy of cobra_model where the reactions in list have been eliminated
@@ -143,6 +141,7 @@ Returns a copy of cobra_model where all reactions have been eliminated except th
 """
 function keep_reactions(cobra_model::COBRA.LPproblem, list::AbstractVector{Int})
     @assert all(1 .≤ list .≤ length(cobra_model.rxns))
+    list = unique(list)
 
     S = cobra_model.S[:, list]
     c = cobra_model.c[list]
@@ -152,4 +151,62 @@ function keep_reactions(cobra_model::COBRA.LPproblem, list::AbstractVector{Int})
 
     COBRA.LPproblem(S, cobra_model.b, c, lb, ub, cobra_model.osense, 
                     cobra_model.csense, rxns, cobra_model.mets)
+end
+
+
+"""
+Returns a copy of model where metabolites in list have been eliminated.
+"""
+function remove_metabolites(model::COBRA.LPproblem, list::AbstractVector{Int})
+    keep = [i for i = 1 : length(model.mets) if i ∉ list]
+    keep_metabolites(model, keep)
+end
+
+
+"""
+Returns a copy of model where metabolites in list have been eliminated.
+"""
+remove_metabolite(model::COBRA.LPproblem, i::Int) = remove_metabolites(model, [i])
+
+
+"""
+Returns a copy of model where all metabolites have been eliminated except those in list.
+"""
+function keep_metabolites(model::COBRA.LPproblem, list::AbstractVector{Int})
+    @assert all(1 .≤ list .≤ length(model.mets))
+    list = unique(list)
+
+    S = model.S[list, :]
+    b = model.b[list]
+    csense = model.csense[list]
+    mets = model.mets[list]
+
+    COBRA.LPproblem(S, b, model.c, model.lb, model.ub, 
+                    model.osense, csense, model.rxns, mets)
+end
+
+
+"""
+Returns a copy of model where reactions that can't carry flux have been removed.
+Null reactions are those for which max(|fmin|, |fmax|) < tol, where tol = 1e-4
+by default. This requires fmin, fmax from fva. If you have computed fmin, fmax 
+already, you can pass them as arguments to save computing time.
+"""
+function reduce_model end
+
+function reduce_model(model::COBRA.LPproblem; tol::Real = 1e-6)
+    @assert 0 ≤ tol < Inf
+    fmin, fmax = fva(model)
+    reduce_model(model, fmin, fmax; tol = tol)
+end
+
+function reduce_model(model::COBRA.LPproblem, fmin::Vector{Float64}, fmax::Vector{Float64}; 
+                      tol::Real = 1e-6)
+    @assert 0 ≤ tol < Inf
+    @assert length(fmin) == length(fmax) == length(model.rxns)
+    rxns = [k for k = 1 : length(model.rxns) if abs(fmin[k]) < tol && abs(fmin[k]) < tol]
+    model = remove_reactions(model, rxns)
+    mets = [i for i = 1 : length(model.mets) if length(metabolite_reactions(model, i)) == 0]
+    model = remove_metabolites(model, mets)
+    return model
 end
