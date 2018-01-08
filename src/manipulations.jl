@@ -204,6 +204,9 @@ function reduce_model(model::COBRA.LPproblem, fmin::Vector{Float64}, fmax::Vecto
                       tol::Real = 1e-6)
     @assert 0 ≤ tol < Inf
     @assert length(fmin) == length(fmax) == length(model.rxns)
+    model = deepcopy(model)
+    model.lb .= fmin
+    model.ub .= fmax
     rxns = [k for k = 1 : length(model.rxns) if abs(fmin[k]) < tol && abs(fmax[k]) < tol]
     model = remove_reactions(model, rxns)
     mets = [i for i = 1 : length(model.mets) if length(metabolite_reactions(model, i)) == 0]

@@ -27,6 +27,6 @@ end
     ecolired = COBRAUtils.reduce_model(ecoli);
     @test size(ecolired.S) == (68, 87)
     status0, μ0, v0 = COBRAUtils.optimize(ecoli)
-    status1, μ1, v1 = COBRAUtils.optimize(ecoli)
+    status1, μ1, v1 = COBRAUtils.optimize(ecolired)
     @test μ0 ≈ μ1
 end
