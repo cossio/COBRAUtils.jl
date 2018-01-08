@@ -49,6 +49,8 @@ contains the min fluxes and fmax the max fluxes.
 """
 function fva(model::COBRA.LPproblem, rxns::AbstractVector{Int})
     m,n = size(model.S)
+    @assert all(1 .≤ rxns .≤ n)
+
     lp = JuMP.Model(solver=GLPKMathProgInterface.GLPKSolverLP())
     JuMP.@variable lp model.lb[k] ≤ x[k = 1:n] ≤ model.ub[k]
 
@@ -84,7 +86,8 @@ function fva(model::COBRA.LPproblem, rxns::AbstractVector{Int})
 end
 
 
-"""
-Perform fva for every reaction in the model.
-"""
+"Perform fva for every reaction in the model."
 fva(model::COBRA.LPproblem) = fva(model, 1 : length(model.rxns))
+
+"Perform fva for the i'th reaction"
+fva(model::COBRA.LPproblem, i::Int) = fva(model, [i])
