@@ -15,6 +15,7 @@ import COBRAUtils
     @test size(model2.S) == (size(model.S, 1), n - 1)
 end
 
+
 @testset "remove reaction list" begin
     model = COBRAUtils.loadEColiTestModel()
     n = length(model.rxns)

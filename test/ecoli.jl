@@ -20,3 +20,13 @@ import COBRAUtils
     status, μ, v = COBRAUtils.optimize(model)
     @test μ ≈ 0.8739215069684305
 end
+
+
+@testset "reduce_model E. Coli" begin
+    ecoli = COBRAUtils.loadEColiTestModel();
+    ecolired = COBRAUtils.reduce_model(ecoli);
+    @test size(ecolired.S) == (68, 87)
+    status0, μ0, v0 = COBRAUtils.optimize(ecoli)
+    status1, μ1, v1 = COBRAUtils.optimize(ecoli)
+    @test μ0 ≈ μ1
+end
