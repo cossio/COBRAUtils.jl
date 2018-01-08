@@ -217,7 +217,7 @@ Sets the objective reaction as the i'th reaction.
 If sense == 1 (default), flux is maximized. If
 sense == -1, flux is minimized.
 """
-function set_objective(model::COBRA.LPproblem, i::Int, sense::Int = 1)
+function set_objective!(model::COBRA.LPproblem, i::Int, sense::Int = 1)
     model.c .= 0
     model.c[i] = 1
     model.osense = sign(sense)
