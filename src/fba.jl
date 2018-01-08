@@ -90,4 +90,7 @@ end
 fva(model::COBRA.LPproblem) = fva(model, 1 : length(model.rxns))
 
 "Perform fva for the i'th reaction"
-fva(model::COBRA.LPproblem, i::Int) = fva(model, [i])
+function fva(model::COBRA.LPproblem, i::Int)
+    fmin, fmax = fva(model, [i])
+    fmin[1], fmax[1]
+end
