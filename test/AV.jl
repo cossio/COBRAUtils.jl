@@ -35,3 +35,12 @@ end
     @test COBRAUtils.metabolite_reactions(model, "atp") == [1,3,4]
     @test COBRAUtils.metabolite_reactions(model, "pyr") == [1,2,3]
 end
+
+
+@testset "Bounds" begin
+    model = COBRAUtils.AVCobraModel(0.5, 0.)
+    for i = 1 : length(model.rxns)
+        @test COBRAUtils.lower_bound(model, model.rxns[i]) == model.lb[i]
+        @test COBRAUtils.upper_bound(model, model.rxns[i]) == model.ub[i]
+    end
+end
