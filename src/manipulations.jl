@@ -191,22 +191,25 @@ Returns a copy of model where reactions that can't carry flux have been removed.
 Null reactions are those for which max(|fmin|, |fmax|) < tol, where tol = 1e-4
 by default. This requires fmin, fmax from fva. If you have computed fmin, fmax 
 already, you can pass them as arguments to save computing time.
+If fixbounds = true, sets lb and ub of reactions to fmin, fmax.
 """
 function reduce_model end
 
-function reduce_model(model::COBRA.LPproblem; tol::Real = 1e-6)
+function reduce_model(model::COBRA.LPproblem; tol::Real = 1e-6, fixbounds::Bool = false)
     @assert 0 ≤ tol < Inf
     fmin, fmax = fva(model)
-    reduce_model(model, fmin, fmax; tol = tol)
+    reduce_model(model, fmin, fmax; tol=tol, fixbounds=fixbounds)
 end
 
 function reduce_model(model::COBRA.LPproblem, fmin::Vector{Float64}, fmax::Vector{Float64}; 
-                      tol::Real = 1e-6)
+                      tol::Real = 1e-6, fixbounds::Bool = false)
     @assert 0 ≤ tol < Inf
     @assert length(fmin) == length(fmax) == length(model.rxns)
     model = deepcopy(model)
-    model.lb .= fmin
-    model.ub .= fmax
+    if fixbounds
+        model.lb .= fmin
+        model.ub .= fmax
+    end
     rxns = [k for k = 1 : length(model.rxns) if abs(fmin[k]) < tol && abs(fmax[k]) < tol]
     model = remove_reactions(model, rxns)
     mets = [i for i = 1 : length(model.mets) if length(metabolite_reactions(model, i)) == 0]
@@ -225,3 +228,7 @@ function set_objective!(model::COBRA.LPproblem, i::Int, sense::Int = 1)
     model.c[i] = 1
     model.osense = sign(sense)
 end
+
+
+lower_bound(model::COBRA.LPproblem, rxn::String) = model.lb[COBRAUtils.reaction_index(model, rxn)]
+upper_bound(model::COBRA.LPproblem, rxn::String) = model.ub[COBRAUtils.reaction_index(model, rxn)]
