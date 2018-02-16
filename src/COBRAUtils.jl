@@ -6,4 +6,6 @@ include("fba.jl")
 include("AV.jl")
 include("lp-problem.jl")
 
+include("Media.jl")
+
 end # module

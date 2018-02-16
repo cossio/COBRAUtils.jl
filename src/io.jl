@@ -13,6 +13,17 @@ end
 
 
 """
+Read model in MATLAB format.
+Returned stoichiometric matrix is sparse.
+"""
+function readCobraModelSparse(path::String, matrix::String = "S", model::String = "model")
+    model = readCobraModel(path, matrix, model)
+    COBRA.LPproblem(sparse(model.S), model.b, model.c, model.lb, model.ub,
+                           model.osense, model.csense, model.rxns, model.mets)
+end
+
+
+"""
 Converts SBML (.xml) model to MATLAB (.mat) format.
 """
 function prepareXmlModel(xmlpath::String)

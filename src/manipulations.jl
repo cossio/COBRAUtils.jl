@@ -97,7 +97,12 @@ reaction_substrates(cobra_model::COBRA.LPproblem, rxn::String)  = reaction_subst
 reaction_products(cobra_model::COBRA.LPproblem, rxn::String)    = reaction_products(cobra_model,    reaction_index(cobra_model, rxn))
 
 
-function metabolite_reactions(cobra_model::COBRA.LPproblem, i::Int)
+"""
+List of reaction indices that involve the i'th metabolite.
+"""
+function metabolite_reactions end
+
+function metabolite_reactions(cobra_model::COBRA.LPproblem, i::Integer)
     @assert 1 ≤ i ≤ length(cobra_model.mets)
     find(cobra_model.S[i,:])
 end
@@ -108,7 +113,7 @@ metabolite_reactions(cobra_model::COBRA.LPproblem, met::String) = metabolite_rea
 """
 Returns list of reactions that exchange the i'th metabolite
 """
-function exchange_reactions(cobra_model::COBRA.LPproblem, i::Int)
+function exchange_reactions(cobra_model::COBRA.LPproblem, i::Integer)
     indexes = Int[]
     for k in metabolite_reactions(cobra_model, i)
         if isempty(reaction_substrates(cobra_model, k)) || isempty(reaction_products(cobra_model, k))
@@ -124,7 +129,7 @@ exchange_reactions(cobra_model::COBRA.LPproblem, met::String) = exchange_reactio
 """
 Returns a copy of cobra_model where reaction i has been eliminated
 """
-remove_reaction(cobra_model::COBRA.LPproblem, i::Int) = remove_reactions(cobra_model, [i])
+remove_reaction(cobra_model::COBRA.LPproblem, i::Integer) = remove_reactions(cobra_model, [i])
 
 
 """
@@ -166,7 +171,7 @@ end
 """
 Returns a copy of model where metabolites in list have been eliminated.
 """
-remove_metabolite(model::COBRA.LPproblem, i::Int) = remove_metabolites(model, [i])
+remove_metabolite(model::COBRA.LPproblem, i::Integer) = remove_metabolites(model, [i])
 
 
 """
@@ -188,21 +193,21 @@ end
 
 """
 Returns a copy of model where reactions that can't carry flux have been removed.
-Null reactions are those for which max(|fmin|, |fmax|) < tol, where tol = 1e-4
+Null reactions are those for which max(|fmin|, |fmax|) < tol, where tol = 1e-10
 by default. This requires fmin, fmax from fva. If you have computed fmin, fmax 
 already, you can pass them as arguments to save computing time.
-If fixbounds = true, sets lb and ub of reactions to fmin, fmax.
+If fixbounds = true (default), sets lb and ub of reactions to fmin, fmax.
 """
 function reduce_model end
 
-function reduce_model(model::COBRA.LPproblem; tol::Real = 1e-6, fixbounds::Bool = false)
+function reduce_model(model::COBRA.LPproblem; tol::Real = 1e-10, fixbounds::Bool = true)
     @assert 0 ≤ tol < Inf
     fmin, fmax = fva(model)
     reduce_model(model, fmin, fmax; tol=tol, fixbounds=fixbounds)
 end
 
 function reduce_model(model::COBRA.LPproblem, fmin::Vector{Float64}, fmax::Vector{Float64}; 
-                      tol::Real = 1e-6, fixbounds::Bool = false)
+                      tol::Real = 1e-6, fixbounds::Bool = true)
     @assert 0 ≤ tol < Inf
     @assert length(fmin) == length(fmax) == length(model.rxns)
     model = deepcopy(model)
@@ -223,7 +228,7 @@ Sets the objective reaction as the i'th reaction.
 If sense == 1 (default), flux is maximized. If
 sense == -1, flux is minimized.
 """
-function set_objective!(model::COBRA.LPproblem, i::Int, sense::Int = 1)
+function set_objective!(model::COBRA.LPproblem, i::Integer, sense::Integer = 1)
     model.c .= 0
     model.c[i] = 1
     model.osense = sign(sense)
@@ -232,3 +237,4 @@ end
 
 lower_bound(model::COBRA.LPproblem, rxn::String) = model.lb[COBRAUtils.reaction_index(model, rxn)]
 upper_bound(model::COBRA.LPproblem, rxn::String) = model.ub[COBRAUtils.reaction_index(model, rxn)]
+
